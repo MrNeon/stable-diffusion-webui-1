@@ -12,6 +12,7 @@ from modules.processing import Processed, process_images
 from PIL import Image
 from modules.shared import opts, cmd_opts, state
 
+import re
 
 class Script(scripts.Script):
     def title(self):
@@ -23,17 +24,19 @@ class Script(scripts.Script):
         return [same_seed]
 
     def run(self, p, same_seed):
-        def replace_wildcard(chunk):
-            if " " not in chunk:
-                file_dir = os.path.dirname(os.path.realpath("__file__"))
+        m = re.compile("__(\w*?)__")
+        def replace_wildcard(oprompt):
+            file_dir = os.path.dirname(os.path.realpath("__file__"))
+            matches = m.findall(oprompt)
+            for chunk in matches:
                 replacement_file = os.path.join(file_dir, f"scripts/wildcards/{chunk}.txt")
                 if os.path.exists(replacement_file):
                     with open(replacement_file, encoding="utf8") as f:
-                        return random.choice(f.read().splitlines())
-            return chunk
-        
+                        oprompt = oprompt.replace("__" + chunk + "__", random.choice(f.read().splitlines()), 1)
+            return oprompt
+
         original_prompt = p.prompt[0] if type(p.prompt) == list else p.prompt
-        all_prompts = ["".join(replace_wildcard(chunk) for chunk in original_prompt.split("__")) for _ in range(p.batch_size * p.n_iter)]
+        all_prompts = [replace_wildcard(original_prompt) for _ in range(p.batch_size * p.n_iter)]
 
         # TODO: Pregenerate seeds to prevent overlaps when batch_size is > 1
         # Known issue: Clicking "recycle seed" on an image in a batch_size > 1 may not get the correct seed.
