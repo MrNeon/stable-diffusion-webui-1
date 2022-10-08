@@ -24,7 +24,7 @@ class Script(scripts.Script):
         return [same_seed]
 
     def run(self, p, same_seed):
-        m = re.compile("__(\w*?)__")
+        m = re.compile("__([\w-]+?)__")
         def replace_wildcard(oprompt):
             file_dir = os.path.dirname(os.path.realpath("__file__"))
             matches = m.findall(oprompt)
