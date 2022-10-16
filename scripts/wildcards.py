@@ -73,7 +73,7 @@ class Script(scripts.Script):
                 initial_info = infotext
                 initial_seed = proc.seed
             if not same_seed:
-                p.seed = proc.seed+1
+                p.seed = proc.seed+p.batch_size
 
         p.do_not_save_grid = original_do_not_save_grid
 
